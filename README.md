@@ -23,13 +23,13 @@
 ### Yarn
 
 ```bash
-yarn add nest-keycloak-connect keycloak-connect
+yarn add @aaaahoang123/nest-keycloak-connect keycloak-connect
 ```
 
 ### NPM
 
 ```bash
-npm install nest-keycloak-connect keycloak-connect --save
+npm install @aaaahoang123/nest-keycloak-connect keycloak-connect --save
 ```
 
 ## Getting Started

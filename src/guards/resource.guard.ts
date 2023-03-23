@@ -13,13 +13,18 @@ import {
   KEYCLOAK_LOGGER,
   PolicyEnforcementMode,
 } from '../constants';
-import { META_ENFORCER_OPTIONS } from '../decorators/enforcer-options.decorator';
+import {
+  EnforcerOptionsWithDecision,
+  META_ENFORCER_OPTIONS,
+} from '../decorators/enforcer-options.decorator';
 import { META_UNPROTECTED } from '../decorators/public.decorator';
 import { META_RESOURCE } from '../decorators/resource.decorator';
 import { META_SCOPES } from '../decorators/scopes.decorator';
 import { KeycloakConnectConfig } from '../interface/keycloak-connect-options.interface';
 import { KeycloakMultiTenantService } from '../services/keycloak-multitenant.service';
 import { extractRequest, useKeycloak } from '../util';
+import { AffirmativeEnforcer } from '../enforcer/affirmative-enforcer';
+import { config } from 'rxjs';
 
 /**
  * This adds a resource guard, which is policy enforcement by default is permissive.
@@ -53,7 +58,7 @@ export class ResourceGuard implements CanActivate {
       [context.getClass(), context.getHandler()],
     );
     const enforcerOpts = this.reflector.getAllAndOverride<
-      KeycloakConnect.EnforcerOptions
+      EnforcerOptionsWithDecision
     >(META_ENFORCER_OPTIONS, [context.getClass(), context.getHandler()]);
 
     // Default to permissive
@@ -134,16 +139,22 @@ export class ResourceGuard implements CanActivate {
 const createEnforcerContext = (
   request: any,
   response: any,
-  options?: KeycloakConnect.EnforcerOptions,
+  options?: EnforcerOptionsWithDecision,
 ) => (keycloak: KeycloakConnect.Keycloak, permissions: string[]) =>
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  new Promise<boolean>((resolve, _) =>
+  new Promise<boolean>(
+    (resolve, _) =>
+      new AffirmativeEnforcer(keycloak, options).enforce(permissions)(
+        request,
+        response,
+        (_: any) => {
+          if (request.resourceDenied) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        },
+      ),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    keycloak.enforcer(permissions, options)(request, response, (_: any) => {
-      if (request.resourceDenied) {
-        resolve(false);
-      } else {
-        resolve(true);
-      }
-    }),
+    // keycloak.enforcer(permissions, options)(request, response, ),
   );

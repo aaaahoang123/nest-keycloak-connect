@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const Enforcer = require('keycloak-connect/middleware');
+const Enforcer = require('keycloak-connect/middleware/enforcer');
 import { DecisionStrategy } from '../decorators/enforcer-options.decorator';
 
 function handlePermissions(permissions, callback) {
